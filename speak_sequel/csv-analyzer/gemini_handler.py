@@ -11,7 +11,7 @@ import markdown2
 def format_text_response(text):
     return markdown2.markdown(text, extras=['tables', 'fenced-code-blocks'])
 
-API_KEY = "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"
+API_KEY = "enter_ur_api_key"
 
 # Configure session globally
 session = requests.Session()
