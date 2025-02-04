@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SPEAK_SEQUEL</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+        }
+        
+        .main-title {
+            color: var(--primary-color);
+            font-size: 3.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .conversation { margin-bottom: 2rem; }
+        .user-message { 
+            background: #f0f7ff; 
+            padding: 1.2rem; 
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+        .assistant-message { 
+            background: #fff; 
+            padding: 1.2rem; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--secondary-color);
+        }
+        .text-response { 
+            line-height: 1.8; 
+            font-size: 1.1rem; 
+        }
+        .text-response p { 
+            margin-bottom: 1.2rem; 
+        }
+        .text-response ul { 
+            padding-left: 1.8rem; 
+            margin-bottom: 1.2rem; 
+        }
+        .text-response li { 
+            margin-bottom: 0.8rem; 
+        }
+        .table { 
+            margin-top: 1.5rem;
+            font-size: 0.95rem;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .table thead {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .table th, .table td {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: none;
+        }
+        .btn {
+            border-radius: 8px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+        }
+        .form-control {
+            border-radius: 8px;
+            padding: 0.8rem;
+        }
+    </style>
+</head>
+<body class="container mt-4">
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-info">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <h1 class="main-title">SPEAK_SEQUEL</h1>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            {% if not table_exists %}
+                <h2>Upload CSV File</h2>
+                <form action="/" method="POST" enctype="multipart/form-data" class="mb-3">
+                    <div class="mb-3">
+                        <input type="file" class="form-control" name="csv_file" accept=".csv" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload Dataset</button>
+                </form>
+            {% else %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Current dataset: {{ current_file }}</h5>
+                    <form action="/" method="POST">
+                        <input type="hidden" name="delete_dataset" value="true">
+                        <button type="submit" class="btn btn-danger">Delete Dataset</button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if table_exists %}
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2>Ask a Question</h2>
+                    <form action="/clear" method="POST">
+                        <button type="submit" class="btn btn-secondary">Clear Conversation</button>
+                    </form>
+                </div>
+                <form action="/query" method="POST">
+                    <div class="mb-3">
+                        <input type="text" class="form-control" name="question" required placeholder="Ask about your data...">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Get Answer</button>
+                </form>
+            </div>
+        </div>
+
+        {% if conversation %}
+            <div class="conversation mt-4">
+                {% for item in conversation %}
+                    {% if item.user %}
+                        <div class="user-message mb-3">
+                            <strong>You:</strong> {{ item.user }}
+                        </div>
+                    {% endif %}
+                    {% if item.assistant %}
+                        <div class="assistant-message mb-4">
+                            {% if item.type == 'table' %}
+                                <div class="mb-2">{{ item.explanation | safe }}</div>
+                                {{ item.assistant | safe }}
+                            {% else %}
+                                <div class="text-response">{{ item.assistant | safe }}</div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endif %}
+</body>
+</html>
